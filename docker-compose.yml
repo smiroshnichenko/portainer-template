@@ -1,0 +1,64 @@
+version: "2"
+
+services:
+  nginx:
+    image: wodby/nginx:1.14-5.0.2
+    container_name: "${PROJECT_NAME}_nginx"
+    build:
+      dockerfile: Dockerfile
+      context: /usr/share/nginx-vsts
+    environment:
+      PHP_SENDMAIL_PATH: /usr/sbin/sendmail -t -i -S mailhog:1025
+      DB_HOST: mariadb
+      DB_USER: ${PROJECT_NAME}
+      DB_PASSWORD: ${PROJECT_NAME}
+      DB_NAME: ${PROJECT_NAME}
+      DB_PORT: 3306
+      DB_DRIVER: mysql
+      REDIS_HOST: redis
+      REDIS_PREFIX: ${PROJECT_NAME}_
+      VARNISH_SECRET: secret
+      VARNISH_PURGE_KEY: secret
+      VARNISH_HOST: ${PROJECT_NAME}_varnish
+      DRUPAL_NAME: ${PROJECT_NAME}
+      NGINX_STATIC_OPEN_FILE_CACHE: "off"
+      NGINX_ERROR_LOG_LEVEL: debug
+      NGINX_BACKEND_HOST: ${PROJECT_NAME}_php
+      NGINX_SERVER_ROOT: /var/www/html/docroot
+      NGINX_VHOST_PRESET: drupal
+      NGINX_PAGESPEED: "on"
+      VARNISH_SERVICE_HOST: ${PROJECT_NAME}_varnish
+      NGINX_FASTCGI_INTERCEPT_ERRORS: "off"
+    volumes:
+      - /Users/smiro/projects/${PROJECT_NAME}/:/var/www/html # User-guided caching
+    labels:
+      - 'traefik.backend=${PROJECT_NAME}_nginx'
+      - 'traefik.port=8080'
+      - 'traefik.frontend.rule=Host:nginx.${PROJECT_NAME}.loc'
+
+  varnish:
+    image: wodby/drupal-varnish:4.1-2.5.2
+    container_name: "${PROJECT_NAME}_varnish"
+    depends_on:
+      - nginx
+    build:
+      dockerfile: Dockerfile
+      context: /usr/share/varnish-vsts
+    environment:
+      VARNISH_SECRET: secret
+      VARNISH_PURGE_KEY: secret
+      VARNISH_BACKEND_HOST: ${PROJECT_NAME}_nginx
+      VARNISH_BACKEND_PORT: 8080
+      VARNISH_CONFIG_PRESET: drupal
+      REACT_BACKEND: cimplereact_react
+    labels:
+      - 'traefik.backend=${PROJECT_NAME}_varnish'
+      - 'traefik.port=6081'
+      - 'traefik.frontend.rule=Host:${PROJECT_NAME}.loc'
+
+volumes:
+  xdebug:
+networks:
+  default:
+    external:
+      name: drupal
