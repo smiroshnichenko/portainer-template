@@ -50,12 +50,10 @@ services:
       VARNISH_BACKEND_HOST: ${PROJECT_NAME}_nginx
       VARNISH_BACKEND_PORT: 8080
       VARNISH_CONFIG_PRESET: drupal
-      REACT_BACKEND: cimplereact_react
     labels:
       - 'traefik.backend=${PROJECT_NAME}_varnish'
       - 'traefik.port=6081'
       - 'traefik.frontend.rule=Host:${PROJECT_NAME}.loc'
-
 volumes:
   xdebug:
 networks:
