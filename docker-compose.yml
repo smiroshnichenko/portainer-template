@@ -54,8 +54,6 @@ services:
       - 'traefik.backend=${PROJECT_NAME}_varnish'
       - 'traefik.port=6081'
       - 'traefik.frontend.rule=Host:${PROJECT_NAME}.loc'
-volumes:
-  xdebug:
 networks:
   default:
     external:
