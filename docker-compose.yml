@@ -4,6 +4,8 @@ services:
   nginx:
     image: wodby/nginx:1.14-5.0.2
     container_name: "${PROJECT_NAME}_nginx"
+    networks:
+      - default
     build:
       dockerfile: Dockerfile
       context: /usr/share/nginx-vsts
@@ -39,6 +41,8 @@ services:
   varnish:
     image: wodby/drupal-varnish:4.1-2.5.2
     container_name: "${PROJECT_NAME}_varnish"
+    networks:
+      - default
     depends_on:
       - nginx
     build:
